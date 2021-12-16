@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 const whichPMRuns = require('which-pm-runs')
 const boxen = require('boxen')
+const path = require('path')
+const fs = require('fs')
 
 const argv = process.argv.slice(2)
 if (argv.length === 0) {
@@ -11,6 +13,11 @@ const wantedPM = argv[0]
 if (wantedPM !== 'npm' && wantedPM !== 'pnpm' && wantedPM !== 'yarn') {
   console.log(`"${wantedPM}" is not a valid package manager. Available package managers are: npm, pnpm, or yarn.`)
   process.exit(1)
+}
+// Skip detection when you are a dependency of node_modules
+const maybeSkip = ['pnpm-lock.yaml', 'yarn.lock', 'package-lock.json'].every(lockfile => !fs.existsSync(path.join(process.cwd(), lockfile)))
+if (maybeSkip) {
+  return
 }
 const usedPM = whichPMRuns()
 if (usedPM && usedPM.name !== wantedPM) {
